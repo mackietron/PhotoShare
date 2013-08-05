@@ -8,9 +8,8 @@ import android.widget.ImageView;
 
 public class MainActivity extends Activity {
     public static final String TAG = "MainActivity";
-    private ImageView imageView;
-
-    private Photo photo;
+    private MyImageView myImageView;
+    private Photo photo = null;
 
     /**
      * Called when the activity is first created.
@@ -20,20 +19,22 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        imageView = (ImageView) findViewById(R.id.imageView);
+        myImageView = (MyImageView) findViewById(R.id.myImageView);
+        // change view bounds so they fit an image
+        myImageView.setAdjustViewBounds(true);
 
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         // Get intent
         Intent intent = getIntent();
 
         if (Intent.ACTION_SEND.equals(intent.getAction()) && intent.getType() != null) {
             photo = new Photo(getApplicationContext(), intent);
-
-            int width = imageView.getWidth();
-
-            imageView.setImageBitmap(photo.decodePhoto(width, width));
-
-            Log.i(TAG, "imageView width: " + imageView.getWidth());
-            Log.i(TAG, "imageView height: " + imageView.getHeight());
+            myImageView.setPhoto(photo);
         }
     }
 

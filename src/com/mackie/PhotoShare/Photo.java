@@ -10,6 +10,7 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.graphics.Matrix;
 
 import java.io.IOException;
 
@@ -26,7 +27,7 @@ public class Photo {
     String filePath;
     ExifInterface exif;
 
-    private enum Orientation {
+    /*private enum Orientation {
         // values according to EXIF
         HORIZONTAL(1), VERTICAL(6);
 
@@ -37,7 +38,9 @@ public class Photo {
         }
     }
 
-    Orientation orientation = null;
+    Orientation orientation = null;*/
+
+    int orientation;
 
     public Photo(Context context, Intent intent) {
         imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
@@ -45,25 +48,26 @@ public class Photo {
 
         Log.i(TAG, "Photo file path: " + filePath);
 
-        try {
-            exif = new ExifInterface(filePath);
+        orientation = getOrientationFromURI(context, imageUri);
 
-            //textView2.setText("Date taken: " + exif.getAttribute(ExifInterface.TAG_DATETIME) + "\n" +
-            //        "Orientation: " + exif.getAttribute(ExifInterface.TAG_ORIENTATION) + "\n");
+        Log.i(TAG, "Photo orientation: " + orientation);
+
+        /*try {
+            exif = new ExifInterface(filePath);
         }
         catch(IOException e) {
-             // TODO: Catch the IO exception
+             // TO-DO: Catch the IO exception
             Log.e(TAG, "IO exception while opening file: " + filePath);
-        }
+        }*/
 
-        switch(Integer.parseInt(exif.getAttribute(ExifInterface.TAG_ORIENTATION))) {
+        /*switch(Integer.parseInt(exif.getAttribute(ExifInterface.TAG_ORIENTATION))) {
             case 1:
                 orientation = Orientation.HORIZONTAL;
                 break;
             case 6:
                 orientation = Orientation.VERTICAL;
                 break;
-        }
+        }*/
     }
 
     public Bitmap decodePhoto(int reqWidth, int reqHeight) {
@@ -77,28 +81,55 @@ public class Photo {
 
         // Decode bitmap with inSampleSize set
         options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeFile(filePath, options);
+        //return BitmapFactory.decodeFile(filePath, options);
+
+        // TODO: Do we need to create this bitmap?
+        Bitmap inBitmap = BitmapFactory.decodeFile(filePath, options);
+
+        // Rotate image if needed
+        Matrix matrix = new Matrix();
+        if (orientation == 90) {
+            matrix.postRotate(90);
+        }
+        else if (orientation == 180) {
+            matrix.postRotate(180);
+        }
+        else if (orientation == 270) {
+            matrix.postRotate(270);
+        }
+
+        return Bitmap.createBitmap(inBitmap, 0, 0, inBitmap.getWidth(), inBitmap.getHeight(), matrix, true);
     }
 
-    public boolean isHorizontal() {
+    /*public boolean isHorizontal() {
         return (orientation == Orientation.HORIZONTAL);
     }
 
     public boolean isVertical() {
         return (orientation == Orientation.VERTICAL);
-    }
+    }*/
 
-    private String getRealPathFromURI(Context context, Uri contentUri) {
-        String[] projection = { MediaStore.Images.Media.DATA };
+    private String getRealPathFromURI(Context context, Uri photoUri) {
         // import android.support.v4.content.CursorLoader; import this for CursorLoader
-        CursorLoader loader = new CursorLoader(context, contentUri,
-                                               projection, null, null, null);
+        CursorLoader loader = new CursorLoader(context, photoUri,
+                   new String[] { MediaStore.Images.Media.DATA }, null, null, null);
         Cursor cursor = loader.loadInBackground();
         int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
         cursor.moveToFirst();
         return cursor.getString(column_index);
     }
 
+    private int getOrientationFromURI(Context context, Uri photoUri) {
+        // import android.support.v4.content.CursorLoader; import this for CursorLoader
+        CursorLoader loader = new CursorLoader(context, photoUri,
+                new String[] { MediaStore.Images.ImageColumns.ORIENTATION }, null, null, null);
+        Cursor cursor = loader.loadInBackground();
+        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.ORIENTATION);
+        cursor.moveToFirst();
+        return cursor.getInt(column_index);
+    }
+
+    // If the image is smaller than requested picture size it will be displayed smaller as well
     private int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
         // Raw height and width of image
         final int height = options.outHeight;
@@ -114,8 +145,11 @@ public class Photo {
             // Choose the smallest ratio as inSampleSize value, this will guarantee
             // a final image with both dimensions larger than or equal to the
             // requested height and width.
-            inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
+            //inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
+            inSampleSize = widthRatio;
         }
+
+        Log.i(TAG, "Photo inSampleSize: " + inSampleSize);
 
         return inSampleSize;
     }

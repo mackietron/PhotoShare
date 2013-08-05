@@ -1,15 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
               android:padding="10dp"
     >
 
-    <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/imageView"
-            android:layout_gravity="top"/>
 
+    <view
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        class="com.mackie.PhotoShare.MyImageView"
+        android:id="@+id/myImageView"/>
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Rodzaj papieru:"
+        android:id="@+id/textView"
+        android:textIsSelectable="false"
+        android:textSize="16dp"/>
+
+    <RadioGroup
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="błyszczący"
+            android:id="@+id/radioButton"
+            android:layout_gravity="left"
+            android:checked="true"/>
+
+        <RadioButton
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="matowy"
+            android:id="@+id/radioButton1"
+            android:checked="false"/>
+    </RadioGroup>
 </LinearLayout>
